@@ -7,100 +7,80 @@ import GridListTileBar from '@material-ui/core/GridListTileBar';
 import ListSubheader from '@material-ui/core/ListSubheader';
 import IconButton from '@material-ui/core/IconButton';
 import InfoIcon from '@material-ui/icons/Info';
+import FavoriteIcon from '@material-ui/icons/Favorite';
+import FavoriteBorderIcon from '@material-ui/icons/FavoriteBorder';
 import Typography from '@material-ui/core/Typography';
 import Pagination from '@material-ui/lab/Pagination';
 import {tileData}  from './data';
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
-    overflow: 'hidden',
-    backgroundColor: theme.palette.background.paper,
-  },
-  gridList: {
-    width: 980,
-    // height: 450,
-  },
-  icon: {
-    color: 'rgba(255, 255, 255, 0.54)',
-  },
-}));
+export default class Products extends Component {
 
-const paginStyles = makeStyles(theme => ({
-  root: {
-    '& > * + *': {
-      marginTop: theme.spacing(2),
-      width: '100%',
-      display: 'block',
-    },
-  },
-}));
+    constructor(props) {
+      super(props);
+      this.state = {
+        products : [],
+        currentPage : 1,
+        productsPerPage : 4,
+        numOfPages : 0,
+      }
+    }
 
-export default function Products (){
-  const classes = useStyles();
-  const pagingClasses = paginStyles();
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [productsPerPage, setProductsPerPage] = useState(4);
+    getProducts =  (pageNumber) => {
+      const url = 'http://localhost/test/react-products.php?page='+pageNumber;
+      axios.get(url)
+        .then(res => {
+          this.setState({
+            products : res.data.result,
+            numOfPages : res.data.total_pages
+          })
+      });
+    };
 
-  const [prodcuts, setProdcuts] = useState([]);
-  const [numOfPages, setNumOfPages] = useState(0);
+    componentDidMount() {
+      this.getProducts(this.state.currentPage)
+    }
 
-  //const [prodcuts, setProdcuts] = useState(tileData.slice(0,productsPerPage));
-  //const numOfPages = Math.ceil(tileData.length / productsPerPage);
+    handlePageChange(event , pageNumber) {
+      console.log(`active page is ${pageNumber}`);
+      this.setState({currentPage: pageNumber});
+      this.getProducts(pageNumber)
+    }
 
-  const getProducts =  (page) => {
-    setLoading(true);
-    const url = 'http://localhost/test/react-products.php?page='+page;
-    axios.get(url)
-      .then(res => {
-        setProdcuts(res.data.result);
-        setNumOfPages(res.data.total_pages);
-        setLoading(false);
-    });
-  };
-
-  useEffect (() => {
-    getProducts(page);
-  }, [] );
-
-  const handleChange = (event, value) => {
-    setPage(value);
-    getProducts(value);
-    // const indexLastProduct   = value * productsPerPage ;
-    // const indexFirsttProduct = indexLastProduct - productsPerPage;
-    // const currentProducts    = tileData.slice(indexFirsttProduct, indexLastProduct);
-    // setProdcuts(currentProducts);
-  };
-
-  return (
-    <div className={classes.root}>
-    <GridList cellHeight={200} cols={4} className={classes.gridList}>
-      <GridListTile key="Subheader" cols={4} style={{ height: 'auto' }}>
-        <ListSubheader component="div">Listing Products</ListSubheader>
-      </GridListTile>
-      {prodcuts.map(prodcut => (
-        <GridListTile key={prodcut.img}>
-          <img src={prodcut.img} alt={prodcut.title} />
-          <GridListTileBar
-            title={prodcut.title}
-            // subtitle={<span>by: {prodcut.author}</span>}
-            subtitle={<span>{prodcut.price}</span>}
-            actionIcon={
-              <IconButton aria-label={`info about ${prodcut.title}`} className={classes.icon}>
-                <InfoIcon />
-              </IconButton>
-            }
-          />
-        </GridListTile>
-      ))}
-    </GridList>
-    <div className={pagingClasses.root}>
-      <Typography>Page: {page}</Typography>
-      <Pagination count={numOfPages} page={page} onChange={handleChange} />
-    </div>
-  </div>
-  );
+    render() { 
+      return (
+        <div>
+          <GridList cellHeight={200} cols={4} >
+            <GridListTile key="Subheader" cols={4} style={{ height: 'auto' }}>
+              <ListSubheader component="div">Listing Products</ListSubheader>
+            </GridListTile>
+            {this.state.products.map(product => (
+              <GridListTile key={product.img}>
+                <img src={product.img} alt={product.title} />
+                <GridListTileBar
+                  title={product.title}
+                  // subtitle={<span>by: {product.author}</span>}
+                  subtitle={<span>{product.price}</span>}
+                  actionIcon={
+                    <IconButton aria-label={`info about ${product.title}`} >
+                      {product.is_favorite ? (
+                      <FavoriteIcon style={{color:'white'}} />
+                      ) : (
+                      <FavoriteBorderIcon style={{color:'white'}} />
+                      )}
+                    </IconButton>
+                  }
+                />
+              </GridListTile>
+            ))}
+          </GridList>
+          <div>
+            <Typography>Page: {this.state.currentPage}</Typography>
+            <Pagination count={this.state.numOfPages} 
+              page={this.state.currentPage} 
+              onChange={this.handlePageChange.bind(this)} 
+            />
+          </div>
+        </div>
+      )
+    }
 }
