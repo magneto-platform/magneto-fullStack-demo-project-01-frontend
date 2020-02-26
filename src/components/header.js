@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { BrowserRouter,  Switch, Route, Link } from "react-router-dom";
-import Home from '../containers/home/home.component';
-import Products from '../containers/products/products.component';
+import Home from '../containers/home/home.page';
+import Products from '../containers/products/products.page';
 import Login from "./login-form";
 import SignUp from "./signup-form";
 export class Header extends Component {
