@@ -1,5 +1,5 @@
 import React, { Component, useState, useEffect } from 'react';
-
+import axios from 'axios';
 import { makeStyles } from '@material-ui/core/styles';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
@@ -32,6 +32,8 @@ const paginStyles = makeStyles(theme => ({
   root: {
     '& > * + *': {
       marginTop: theme.spacing(2),
+      width: '100%',
+      display: 'block',
     },
   },
 }));
@@ -40,16 +42,37 @@ export default function Products (){
   const classes = useStyles();
   const pagingClasses = paginStyles();
   const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [productsPerPage, setProductsPerPage] = useState(4);
-  const [prodcuts, setProdcuts] = useState(tileData.slice(0,productsPerPage));
-  const numOfPages = Math.ceil(tileData.length / productsPerPage);
+
+  const [prodcuts, setProdcuts] = useState([]);
+  const [numOfPages, setNumOfPages] = useState(0);
+
+  //const [prodcuts, setProdcuts] = useState(tileData.slice(0,productsPerPage));
+  //const numOfPages = Math.ceil(tileData.length / productsPerPage);
+
+  const getProducts =  (page) => {
+    setLoading(true);
+    const url = 'http://localhost/test/react-products.php?page='+page;
+    axios.get(url)
+      .then(res => {
+        setProdcuts(res.data.result);
+        setNumOfPages(res.data.total_pages);
+        setLoading(false);
+    });
+  };
+
+  useEffect (() => {
+    getProducts(page);
+  }, [] );
 
   const handleChange = (event, value) => {
     setPage(value);
-    const indexLastProduct   = value * productsPerPage ;
-    const indexFirsttProduct = indexLastProduct - productsPerPage;
-    const currentProducts    = tileData.slice(indexFirsttProduct, indexLastProduct);
-    setProdcuts(currentProducts);
+    getProducts(value);
+    // const indexLastProduct   = value * productsPerPage ;
+    // const indexFirsttProduct = indexLastProduct - productsPerPage;
+    // const currentProducts    = tileData.slice(indexFirsttProduct, indexLastProduct);
+    // setProdcuts(currentProducts);
   };
 
   return (
