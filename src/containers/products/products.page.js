@@ -26,13 +26,21 @@ export default class Products extends Component {
     }
 
     getProducts =  (pageNumber) => {
-      const url = 'http://localhost/test/react-products.php?page='+pageNumber;
+      //const url = 'http://localhost/test/react-products.php?page='+pageNumber;
+      const url = 'https://reqres.in/api/users?page='+pageNumber+'&per_page='+this.state.productsPerPage
       axios.get(url)
         .then(res => {
           this.setState({
-            products : res.data.result,
+            //products : res.data.data,
             numOfPages : res.data.total_pages
-          })
+          });
+          const apiProducts = res.data.data;
+          let tempProducts  = [];
+          const startIndex  = (this.state.currentPage - 1) * this.state.productsPerPage ;
+          for (var i = 0; i < apiProducts.length; i++) {
+            tempProducts.push(tileData[(startIndex + i)]);
+          }
+          this.setState({products: tempProducts });
       });
     };
 
@@ -43,7 +51,7 @@ export default class Products extends Component {
     handlePageChange(event , pageNumber) {
       console.log(`active page is ${pageNumber}`);
       this.setState({currentPage: pageNumber});
-      this.getProducts(pageNumber)
+      this.getProducts(pageNumber);
     }
 
     render() { 
@@ -54,7 +62,7 @@ export default class Products extends Component {
               <ListSubheader component="div">Listing Products</ListSubheader>
             </GridListTile>
             {this.state.products.map(product => (
-              <GridListTile key={product.img}>
+              <GridListTile key={product.id}>
                 <img src={product.img} alt={product.title} />
                 <GridListTileBar
                   title={product.title}
